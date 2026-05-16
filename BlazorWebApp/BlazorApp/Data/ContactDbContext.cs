@@ -19,11 +19,6 @@ public class ContactDbContext(DbContextOptions<ContactDbContext> options) : DbCo
                 .HasColumnName("Full Name")
                 .IsRequired();
 
-            entity.Property(e => e.Address).HasColumnName("Address");
-            entity.Property(e => e.City).HasColumnName("City");
-            entity.Property(e => e.State).HasColumnName("State");
-            entity.Property(e => e.Zip).HasColumnName("Zip");
-
             entity.Property(e => e.Email)
                 .HasColumnName("Email")
                 .IsRequired();
