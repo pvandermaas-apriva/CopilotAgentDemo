@@ -127,8 +127,9 @@
             saveSuccess = true;
             await LoadContacts();
             ResetForm();
+            StateHasChanged();
         }
-        catch
+        catch (Exception)
         {
             saveError = true;
         }
