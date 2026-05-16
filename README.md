@@ -13,3 +13,21 @@ The agent will be used to generate code, tests, documentation, and more based on
  - .NET 10
  - C# 14
  - [Aspire 13.1](https://aspire.dev/) Orchestration (also assists Copilot agents!)
+
+## Resources:
+
+- [Copilot cloud agent versus agent mode](https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agents/cloud-agent/about-cloud-agent#copilot-cloud-agent-versus-agent-mode)
+- [Hands-on exercise with Copilot agent](https://github.com/skills/expand-your-team-with-copilot)
+- [awesome-copilot](https://github.com/github/awesome-copilot/tree/main ) *(community-contributed instructions, agents, skills, and configurations)*
+
+---
+ When using this template, review edit the following files to provide guidance to GitHub Copilot cloud agents:
+
+ 
+    •	agent-prompts.md
+    •	docs/copilot/objectives.md
+    •	.github/copilot-instructions.md
+    •	.github/prompts/feature-implementation.prompt.md
+    •	.github/prompts/test-generation.prompt.md
+    •	.github/prompts/documentation-update.prompt.md
+    
