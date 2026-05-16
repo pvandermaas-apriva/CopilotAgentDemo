@@ -1,0 +1,142 @@
+@page "/contact"
+@rendermode InteractiveServer
+
+@using BlazorApp.Data
+@using BlazorApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject ContactDbContext DbContext
+
+<PageTitle>Contact</PageTitle>
+
+<h1>Contact</h1>
+
+<p>Enter your contact details below.</p>
+
+@if (saveSuccess)
+{
+    <div class="alert alert-success" role="alert">
+        Contact saved successfully!
+    </div>
+}
+
+@if (saveError)
+{
+    <div class="alert alert-danger" role="alert">
+        An error occurred while saving. Please try again.
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="contact" OnValidSubmit="HandleValidSubmit" FormName="ContactForm">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                <InputText id="fullName" class="form-control" @bind-Value="contact.FullName" />
+                <ValidationMessage For="() => contact.FullName" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                <InputText id="email" class="form-control" @bind-Value="contact.Email" />
+                <ValidationMessage For="() => contact.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label for="address" class="form-label">Address</label>
+                <InputText id="address" class="form-control" @bind-Value="contact.Address" />
+            </div>
+
+            <div class="mb-3">
+                <label for="city" class="form-label">City</label>
+                <InputText id="city" class="form-control" @bind-Value="contact.City" />
+            </div>
+
+            <div class="mb-3">
+                <label for="state" class="form-label">State</label>
+                <InputText id="state" class="form-control" @bind-Value="contact.State" />
+            </div>
+
+            <div class="mb-3">
+                <label for="zip" class="form-label">Zip</label>
+                <InputText id="zip" class="form-control" @bind-Value="contact.Zip" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm">Clear</button>
+        </EditForm>
+    </div>
+</div>
+
+@if (contacts.Count > 0)
+{
+    <h2 class="mt-4">Saved Contacts</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Address</th>
+                <th>City</th>
+                <th>State</th>
+                <th>Zip</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in contacts)
+            {
+                <tr>
+                    <td>@c.FullName</td>
+                    <td>@c.Email</td>
+                    <td>@c.Address</td>
+                    <td>@c.City</td>
+                    <td>@c.State</td>
+                    <td>@c.Zip</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private BlazorApp.Models.Contact contact = new() { FullName = string.Empty, Email = string.Empty };
+    private List<BlazorApp.Models.Contact> contacts = new();
+    private bool saveSuccess = false;
+    private bool saveError = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadContacts();
+    }
+
+    private async Task LoadContacts()
+    {
+        contacts = await DbContext.Contacts.ToListAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        saveSuccess = false;
+        saveError = false;
+        try
+        {
+            DbContext.Contacts.Add(contact);
+            await DbContext.SaveChangesAsync();
+            saveSuccess = true;
+            await LoadContacts();
+            ResetForm();
+            StateHasChanged();
+        }
+        catch (Exception)
+        {
+            saveError = true;
+        }
+    }
+
+    private void ResetForm()
+    {
+        contact = new() { FullName = string.Empty, Email = string.Empty };
+    }
+}
