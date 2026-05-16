@@ -1,4 +1,6 @@
 using BlazorApp.Components;
+using BlazorApp.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +9,8 @@ builder.AddServiceDefaults();
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddDbContext<ContactDbContext>(options =>
+    options.UseInMemoryDatabase("BlazorContactsDemoDb"));
 
 var app = builder.Build();
 
