@@ -45,8 +45,20 @@ app.UseAntiforgery();
 var contactsApi = app.MapGroup("/api/v1/contacts")
     .RequireRateLimiting("contacts-api");
 
-contactsApi.MapGet("/", async (ContactDbContext dbContext) =>
-    await dbContext.Contacts.AsNoTracking().ToListAsync());
+contactsApi.MapGet("/", async (int? skip, int? take, ContactDbContext dbContext) =>
+{
+    const int defaultTake = 100;
+    const int maxTake = 200;
+    var normalizedSkip = Math.Max(skip ?? 0, 0);
+    var normalizedTake = Math.Clamp(take ?? defaultTake, 1, maxTake);
+
+    return await dbContext.Contacts
+        .AsNoTracking()
+        .OrderBy(c => c.ContactId)
+        .Skip(normalizedSkip)
+        .Take(normalizedTake)
+        .ToListAsync();
+});
 
 contactsApi.MapGet("/{id:int}", async (int id, ContactDbContext dbContext) =>
 {
@@ -56,19 +68,16 @@ contactsApi.MapGet("/{id:int}", async (int id, ContactDbContext dbContext) =>
 
 contactsApi.MapPost("/", async (ContactRequest request, ContactDbContext dbContext) =>
 {
-    if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email))
+    var validationErrors = ValidateContactRequest(request);
+    if (validationErrors.Count > 0)
     {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            ["FullName"] = ["FullName is required."],
-            ["Email"] = ["Email is required."]
-        });
+        return Results.ValidationProblem(validationErrors);
     }
 
     var contact = new BlazorApp.Models.Contact
     {
-        FullName = request.FullName,
-        Email = request.Email,
+        FullName = request.FullName!,
+        Email = request.Email!,
         Address = request.Address,
         City = request.City,
         State = request.State,
@@ -83,13 +92,10 @@ contactsApi.MapPost("/", async (ContactRequest request, ContactDbContext dbConte
 
 contactsApi.MapPut("/{id:int}", async (int id, ContactRequest request, ContactDbContext dbContext) =>
 {
-    if (string.IsNullOrWhiteSpace(request.FullName) || string.IsNullOrWhiteSpace(request.Email))
+    var validationErrors = ValidateContactRequest(request);
+    if (validationErrors.Count > 0)
     {
-        return Results.ValidationProblem(new Dictionary<string, string[]>
-        {
-            ["FullName"] = ["FullName is required."],
-            ["Email"] = ["Email is required."]
-        });
+        return Results.ValidationProblem(validationErrors);
     }
 
     var contact = await dbContext.Contacts.FindAsync(id);
@@ -98,8 +104,8 @@ contactsApi.MapPut("/{id:int}", async (int id, ContactRequest request, ContactDb
         return Results.NotFound();
     }
 
-    contact.FullName = request.FullName;
-    contact.Email = request.Email;
+    contact.FullName = request.FullName!;
+    contact.Email = request.Email!;
     contact.Address = request.Address;
     contact.City = request.City;
     contact.State = request.State;
@@ -127,6 +133,23 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+static Dictionary<string, string[]> ValidateContactRequest(ContactRequest request)
+{
+    var errors = new Dictionary<string, string[]>();
+
+    if (string.IsNullOrWhiteSpace(request.FullName))
+    {
+        errors["FullName"] = ["FullName is required."];
+    }
+
+    if (string.IsNullOrWhiteSpace(request.Email))
+    {
+        errors["Email"] = ["Email is required."];
+    }
+
+    return errors;
+}
 
 internal sealed record ContactRequest(
     string? FullName,
