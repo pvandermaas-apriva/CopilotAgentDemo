@@ -1,0 +1,2 @@
+###
+GET https://blazorapp.dev.localhost:50840/api/v1/contacts HTTP/1.1
